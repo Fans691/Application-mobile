@@ -1,6 +1,7 @@
 import { createApp } from 'vue'
 import { IonicVue } from '@ionic/vue'
 import App from './App.vue'
+import router from './router'
 import './theme/variables.css'
 
 import '@ionic/vue/css/core.css'
@@ -12,4 +13,9 @@ import '@ionic/vue/css/text-alignment.css'
 import '@ionic/vue/css/flex-utils.css'
 import '@ionic/vue/css/display.css'
 
-createApp(App).use(IonicVue).mount('#app')
+const app = createApp(App)
+app.use(IonicVue)
+app.use(router)
+router.isReady().then(() => {
+  app.mount('#app')
+})
