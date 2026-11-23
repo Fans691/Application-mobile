@@ -52,6 +52,9 @@
 
           </form>
 
+          <router-link to="/inscription">
+            Pas encore de compte ? S'inscrire
+          </router-link>
         </div>
 
       </div>
@@ -63,17 +66,18 @@
 <script setup lang="ts">
 
 import { ref } from 'vue';
-import { useRouter } from 'vue-router';
+
 
 import {
   IonPage,
   IonContent,
   IonItem,
   IonInput,
-  IonButton
+  IonButton,
 } from '@ionic/vue';
 
 import { login } from '../services/auth.service';
+import { useRouter } from 'vue-router';
 
 const router = useRouter();
 
