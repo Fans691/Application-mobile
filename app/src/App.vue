@@ -6,7 +6,9 @@ import { IonApp, IonContent, IonPage } from '@ionic/vue'
   <IonApp>
     <IonPage>
       <IonContent :fullscreen="true">
-        <main class="app-shell"></main>
+        <main class="app-shell">
+          <!-- Commencez votre nouvelle application ici. -->
+        </main>
       </IonContent>
     </IonPage>
   </IonApp>

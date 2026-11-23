@@ -1,21 +1,36 @@
-# Mobile Skeleton Template
+# Application Mobile - Template
 
-Squelette mobile minimal avec **Vue 3, TypeScript, Vite et Ionic**.
+Projet minimal séparé en deux parties :
 
-Aucune page ou interface prédéfinie : le contenu est à développer directement dans `src/App.vue`.
+- `app/` : application **Vue 3, TypeScript, Vite et Ionic**
+- `api/` : API HTTP Node.js sans dépendance
 
-## Démarrage
+Aucune donnée métier, aucun écran de démonstration et aucune configuration propre à un projet existant.
+
+## Application
 
 ```bash
+cd app
 npm install
 npm run dev
 ```
 
-Puis ouvrir l’adresse indiquée par Vite.
+Le contenu de départ se trouve dans `app/src/App.vue`.
+
+## API
+
+```bash
+cd api
+npm run dev
+```
+
+L’API expose `GET /api/health` sur `http://localhost:3000`.
 
 ## Vérification
 
 ```bash
+cd app
 npm run build
-npm run preview
+cd ../api
+npm start
 ```
