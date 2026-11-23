@@ -3,6 +3,7 @@ import { onAuthStateChanged } from 'firebase/auth'
 import type { RouteLocationNormalized } from 'vue-router'
 import { auth } from '@/services/firebase'
 import LoginPage from '@/views/LoginPage.vue'
+import InscriptionPage from '@/views/InscriptionPage.vue'
 import HomePage from '@/views/HomePage.vue'
 
 const router = createRouter({
@@ -12,6 +13,11 @@ const router = createRouter({
     {
       path: '/login',
       component: LoginPage,
+      meta: { guestOnly: true },
+    },
+    {
+      path: '/inscription',
+      component: InscriptionPage,
       meta: { guestOnly: true },
     },
     {
