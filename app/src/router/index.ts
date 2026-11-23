@@ -4,54 +4,61 @@ import type { RouteLocationNormalized } from 'vue-router'
 import { auth } from '@/services/firebase'
 import LoginPage from '@/views/LoginPage.vue'
 import HomePage from '@/views/HomePage.vue'
+import SignupPage from '@/views/Signup.vue'
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
-  routes: [
-    { path: '/', redirect: '/login' },
-    {
-      path: '/login',
-      component: LoginPage,
-      meta: { guestOnly: true },
-    },
-    {
-      path: '/home',
-      component: HomePage,
-      meta: { requiresAuth: true },
-    },
-  ],
+    history: createWebHistory(import.meta.env.BASE_URL),
+    routes: [
+        { path: '/', redirect: '/login' },
+        {
+            path: '/login',
+            component: LoginPage,
+            meta: { guestOnly: true },
+        },
+        {
+            path: '/home',
+            component: HomePage,
+            meta: { requiresAuth: true },
+        },
+        {
+            path: '/signup',
+            component: SignupPage,
+            meta: { guestOnly: true },
+        },
+
+    ],
 })
 
 let authReady: Promise<void> | undefined
 
 function waitForAuth(): Promise<void> {
-  if (!authReady) {
-    authReady = new Promise((resolve) => {
-      const unsubscribe = onAuthStateChanged(auth, () => {
-        unsubscribe()
-        resolve()
-      })
+    if (!authReady) {
+        authReady = new Promise((resolve) => {
+            const unsubscribe = onAuthStateChanged(auth, () => {
+                unsubscribe()
+                resolve()
+            })
 
-      setTimeout(() => {
-        unsubscribe()
-        resolve()
-      }, 3000)
-    })
-  }
-  return authReady
+            setTimeout(() => {
+                unsubscribe()
+                resolve()
+            }, 3000)
+        })
+    }
+    return authReady
 }
 
 router.beforeEach(async (to: RouteLocationNormalized) => {
-  await waitForAuth()
-  const user = auth.currentUser
+    await waitForAuth()
+    const user = auth.currentUser
 
-  if (to.meta.requiresAuth && !user) {
-    return '/login'
-  }
+    if (to.meta.requiresAuth && !user) {
+        return '/login'
+    }
 
-  if (to.meta.guestOnly && user) {
-    return '/home'
-  }
+    if (to.meta.guestOnly && user) {
+        return '/home'
+    }
 })
 
 export default router

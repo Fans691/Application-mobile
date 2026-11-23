@@ -50,6 +50,10 @@
               {{ loading ? 'Connexion...' : 'Se connecter' }}
             </ion-button>
 
+            <ion-button expand="block" router-link="/signup" fill="clear">
+                Creer un compte
+            </ion-button>
+
           </form>
 
         </div>
