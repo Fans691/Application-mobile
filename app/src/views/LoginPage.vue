@@ -1,198 +1,172 @@
 <template>
-  <ion-page>
-    <ion-content class="ion-padding">
-
-      <div class="login-container">
-
-        <div class="logo">
+  <IonPage>
+    <IonContent>
+      <div class="auth">
+        <header class="auth-header">
+          <BrandMark :size="52" />
           <h1>Refind</h1>
-          <p>Retrouvez ce qui compte.</p>
-        </div>
+          <p>Déclarez, retrouvez et récompensez.</p>
+        </header>
 
-        <div class="form-container">
+        <section class="auth-card">
+          <h2>Connexion</h2>
+          <p class="muted small">Accédez à votre compte.</p>
 
-          <h2>Bienvenue !</h2>
-          <p class="subtitle">
-            Connectez-vous à votre compte.
-          </p>
+          <form class="form-stack" novalidate @submit.prevent="handleLogin">
+            <IonInput
+              v-model="identifiant"
+              fill="outline"
+              label="E-mail"
+              label-placement="floating"
+              type="text"
+              inputmode="email"
+              autocomplete="username"
+              autocapitalize="off"
+              :spellcheck="false"
+            />
 
-          <form @submit.prevent="handleLogin">
-
-            <ion-item>
-              <ion-input
-                v-model="email"
-                type="email"
-                label="Adresse e-mail"
-                label-placement="floating"
-                placeholder="exemple@gmail.com"
-                required/>
-            </ion-item>
-
-            <ion-item>
-              <ion-input
-                v-model="password"
-                type="password"
-                label="Mot de passe"
-                label-placement="floating"
-                required
-              />
-            </ion-item>
-
-            <p v-if="errorMessage" class="error">
-              {{ errorMessage }}
-            </p>
-
-            <ion-button
-              expand="block"
-              type="submit"
-              :disabled="loading"
+            <IonInput
+              v-model="password"
+              fill="outline"
+              label="Mot de passe"
+              label-placement="floating"
+              type="password"
+              autocomplete="current-password"
             >
-              {{ loading ? 'Connexion...' : 'Se connecter' }}
-            </ion-button>
+              <IonInputPasswordToggle slot="end" />
+            </IonInput>
 
+            <p v-if="errorMessage" class="form-error">{{ errorMessage }}</p>
+
+            <IonButton class="btn-main" expand="block" type="submit" :disabled="loading">
+              <IonSpinner v-if="loading" name="crescent" />
+              <span v-else>Se connecter</span>
+            </IonButton>
           </form>
+        </section>
 
-          <router-link to="/inscription">
-            Pas encore de compte ? S'inscrire
-          </router-link>
-        </div>
-
+        <p class="auth-switch">
+          Pas encore de compte ?
+          <RouterLink to="/inscription">Créer un compte</RouterLink>
+        </p>
       </div>
-
-    </ion-content>
-  </ion-page>
+    </IonContent>
+  </IonPage>
 </template>
 
 <script setup lang="ts">
-
-import { ref } from 'vue';
-
-
+import { ref } from 'vue'
+import { RouterLink, useRouter } from 'vue-router'
 import {
-  IonPage,
-  IonContent,
-  IonItem,
-  IonInput,
   IonButton,
-} from '@ionic/vue';
+  IonContent,
+  IonInput,
+  IonInputPasswordToggle,
+  IonPage,
+  IonSpinner,
+} from '@ionic/vue'
+import BrandMark from '@/components/BrandMark.vue'
+import { login } from '@/services/auth.service'
+import { lireRole } from '@/services/users.service'
 
-import { login } from '../services/auth.service';
-import { useRouter } from 'vue-router';
+const router = useRouter()
 
-const router = useRouter();
+const identifiant = ref('')
+const password = ref('')
+const loading = ref(false)
+const errorMessage = ref('')
 
-const email = ref('');
-const password = ref('');
+const messages: Record<string, string> = {
+  'auth/invalid-credential': 'Identifiant ou mot de passe incorrect.',
+  'auth/invalid-email': 'Adresse e-mail invalide.',
+  'auth/user-disabled': 'Ce compte est désactivé.',
+  'auth/too-many-requests': 'Trop de tentatives. Réessayez dans quelques minutes.',
+  'auth/network-request-failed': 'Connexion internet indisponible.',
+}
 
-const loading = ref(false);
-const errorMessage = ref('');
+async function handleLogin() {
+  errorMessage.value = ''
 
-const handleLogin = async () => {
-
-  errorMessage.value = '';
-
-  if (!email.value || !password.value) {
-    errorMessage.value = 'Veuillez remplir tous les champs.';
-    return;
+  if (!identifiant.value.trim() || !password.value) {
+    errorMessage.value = 'Veuillez remplir tous les champs.'
+    return
   }
 
-  loading.value = true;
-
+  loading.value = true
   try {
-
-    const user = await login(
-      email.value,
-      password.value
-    );
-
-    console.log('Connexion réussie !');
-    console.log('UID :', user.uid);
-    console.log('Email :', user.email);
-
-    await router.push('/home');
-
-  } catch (error: any) {
-
-    console.error('Erreur Firebase :', error);
-
-    switch (error.code) {
-
-      case 'auth/invalid-credential':
-        errorMessage.value = 'Email ou mot de passe incorrect.';
-        break;
-
-      case 'auth/invalid-email':
-        errorMessage.value = 'Adresse email invalide.';
-        break;
-
-      case 'auth/user-disabled':
-        errorMessage.value = 'Ce compte est désactivé.';
-        break;
-
-      case 'auth/too-many-requests':
-        errorMessage.value = 'Trop de tentatives. Réessayez plus tard.';
-        break;
-
-      default:
-        errorMessage.value = 'Impossible de se connecter. Réessayez.';
-    }
-
+    const user = await login(identifiant.value, password.value)
+    const role = await lireRole(user.uid)
+    await router.replace(role === 'admin' ? '/admin' : '/tabs/perdus')
+  } catch (error: unknown) {
+    const code = typeof error === 'object' && error && 'code' in error ? String(error.code) : ''
+    errorMessage.value = messages[code] ?? 'Connexion impossible. Réessayez.'
   } finally {
-
-    loading.value = false;
-
+    loading.value = false
   }
-};
-
+}
 </script>
 
 <style scoped>
-
-.login-container {
+.auth {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 100%;
   max-width: 420px;
-  margin: 70px auto;
+  min-height: 100%;
+  margin: 0 auto;
+  padding: calc(32px + env(safe-area-inset-top, 0px)) 20px calc(32px + env(safe-area-inset-bottom, 0px));
 }
 
-.logo {
+.auth-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 28px;
   text-align: center;
-  margin-bottom: 60px;
 }
 
-.logo h1 {
-  font-size: 38px;
-  font-weight: 800;
-  color: var(--ion-color-primary);
+.auth-header h1 {
+  margin: 14px 0 4px;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
-.logo p {
-  color: var(--ion-color-medium);
+.auth-header p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 15px;
 }
 
-.form-container h2 {
-  font-size: 26px;
+.auth-card {
+  padding: 24px 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.auth-card h2 {
+  margin: 0;
+  font-size: 20px;
   font-weight: 700;
 }
 
-.subtitle {
-  color: var(--ion-color-medium);
-  margin-bottom: 30px;
+.auth-card > p {
+  margin: 4px 0 20px;
 }
 
-ion-item {
-  margin-bottom: 15px;
-  --border-radius: 10px;
-}
-
-ion-button {
-  margin-top: 30px;
-  height: 48px;
-  --border-radius: 10px;
-  font-weight: 600;
-}
-
-.error {
-  color: var(--ion-color-danger);
+.auth-switch {
+  margin: 20px 0 0;
+  color: var(--text-muted);
   font-size: 14px;
+  text-align: center;
 }
 
+.auth-switch a {
+  color: var(--ion-color-primary);
+  font-weight: 600;
+  text-decoration: none;
+}
 </style>
